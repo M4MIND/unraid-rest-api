@@ -14,6 +14,7 @@ var NetworkController = new(controllers.NetworkController)
 
 var CpuService = new(services.CpuService)
 var MemoryService = new(services.MemoryService)
+var DockerService = new(services.DockerService)
 
 func main() {
 	r := gin.Default()
@@ -21,17 +22,30 @@ func main() {
 	Gorutines()
 
 	r.Use(cors.Default())
-	r.GET("/system/info/cpu", func(context *gin.Context) {
-		CpuController.GetCpuInfo(context, CpuService)
-	})
-	r.GET("/system/info/cpu/stat", func(context *gin.Context) {
-		CpuController.GetCpuStat(context, CpuService)
-	})
-	r.GET("/system/info/memory", func(context *gin.Context) {
-		MemoryController.GetMemoryInfo(context, MemoryService)
-	})
-	r.GET("/system/info/docker/containers", DockerController.GetContainerList)
-	r.GET("/system/info/network", NetworkController.GetNetworks)
+
+	api := r.Group("/api")
+	{
+
+		api.GET("/system/info/cpu", func(context *gin.Context) {
+			CpuController.GetCpuInfo(context, CpuService)
+		})
+		api.GET("/system/info/cpu/stat", func(context *gin.Context) {
+			CpuController.GetCpuStat(context, CpuService)
+		})
+		api.GET("/system/info/memory", func(context *gin.Context) {
+			MemoryController.GetMemoryInfo(context, MemoryService)
+		})
+		api.GET("/system/info/docker/containers", func(context *gin.Context) {
+			DockerController.GetContainerList(context, DockerService)
+		})
+		api.GET("/docker/container/command/:containerId/stop", func(context *gin.Context) {
+			DockerController.StopContainerById(context, DockerService)
+		})
+		api.GET("/docker/container/command/:containerId/start", func(context *gin.Context) {
+			DockerController.StartContainerById(context, DockerService)
+		})
+		api.GET("/system/info/network", NetworkController.GetNetworks)
+	}
 
 	err := r.Run("0.0.0.0:8554")
 	if err != nil {
