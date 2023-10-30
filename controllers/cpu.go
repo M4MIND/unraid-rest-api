@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"unraid-rest-api/services"
+
 	"github.com/gin-gonic/gin"
 	"github.com/rafacas/sysstats"
-	"unraid-rest-api/services"
 )
 
 type CpuController struct {
