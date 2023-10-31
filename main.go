@@ -1,7 +1,17 @@
 package main
 
-import "unraid-rest-api/cmd/app"
+import (
+	"unraid-rest-api/internal/server"
+	"unraid-rest-api/service"
+)
 
 func main() {
-	app.RestApi()
+	https := server.NewServer()
+
+	https.Run(
+		service.CpuNew(),
+		service.NewMemorySysstats(),
+		service.NewNetworkSysstats(),
+		service.NewDockerClient(),
+	)
 }

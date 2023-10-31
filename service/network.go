@@ -1,14 +1,22 @@
-package services
+package service
 
 import "github.com/rafacas/sysstats"
 
-type NetworkService struct {
+type NetworkSysstats struct {
 	history [60]sysstats.NetAvgStats
 }
 
-func (ctrl *NetworkService) Go() {
+func NewNetworkSysstats() *NetworkSysstats {
+	instance := &NetworkSysstats{}
+
+	go instance._go()
+
+	return instance
+}
+
+func (ctrl *NetworkSysstats) _go() {
 	count := 0
-	for true {
+	for {
 		avg, _ := sysstats.GetNetStatsInterval(1)
 
 		if count < len(ctrl.history) {
@@ -21,15 +29,15 @@ func (ctrl *NetworkService) Go() {
 	}
 }
 
-func (ctrl *NetworkService) GetNetworkStats() {
+func (ctrl *NetworkSysstats) GetNetworkStats() {
 
 }
 
-func (ctrl *NetworkService) GetHistory() [60]sysstats.NetAvgStats {
+func (ctrl *NetworkSysstats) GetHistory() [60]sysstats.NetAvgStats {
 	return ctrl.history
 }
 
-func (ctrl *NetworkService) Get() sysstats.NetRawStats {
+func (ctrl *NetworkSysstats) Get() sysstats.NetRawStats {
 	stat, _ := sysstats.GetNetRawStats()
 
 	return stat
