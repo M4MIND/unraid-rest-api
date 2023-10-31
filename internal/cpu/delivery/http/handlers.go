@@ -20,7 +20,6 @@ func (s *cpuHandler) GetHistory() gin.HandlerFunc {
 		ctx.JSON(200, s.cpuService.GetAvgHistory())
 	}
 }
-
 func (s *cpuHandler) GetInfo() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		info, err := s.cpuService.GetCpuInfo()
