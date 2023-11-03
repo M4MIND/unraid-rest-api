@@ -3,11 +3,13 @@ package service
 import "github.com/rafacas/sysstats"
 
 type NetworkSysstats struct {
-	history [60]sysstats.NetAvgStats
+	history []sysstats.NetAvgStats
+	count   int
+	max     int
 }
 
 func NewNetworkSysstats() *NetworkSysstats {
-	instance := &NetworkSysstats{}
+	instance := &NetworkSysstats{max: 60}
 
 	go instance._go()
 
@@ -19,21 +21,16 @@ func (ctrl *NetworkSysstats) _go() {
 	for {
 		avg, _ := sysstats.GetNetStatsInterval(1)
 
-		if count < len(ctrl.history) {
+		if count < ctrl.max {
 			ctrl.history[count] = avg
-			count++
+			ctrl.count++
 		} else {
-			temp := ctrl.history[1:]
-			ctrl.history = [60]sysstats.NetAvgStats(append(temp, avg))
+			ctrl.history = append(ctrl.history[1:], avg)
 		}
 	}
 }
 
-func (ctrl *NetworkSysstats) GetNetworkStats() {
-
-}
-
-func (ctrl *NetworkSysstats) GetHistory() [60]sysstats.NetAvgStats {
+func (ctrl *NetworkSysstats) GetHistory() []sysstats.NetAvgStats {
 	return ctrl.history
 }
 
