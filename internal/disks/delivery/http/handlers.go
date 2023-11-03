@@ -10,6 +10,12 @@ type disksHandler struct {
 	disksService *service.DisksSysstats
 }
 
+func (d disksHandler) GetHistoryTick() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		context.JSON(200, d.disksService.GetHistoryLast())
+	}
+}
+
 func (d disksHandler) GetHistory() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		context.JSON(200, d.disksService.GetHistory())

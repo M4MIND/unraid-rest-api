@@ -64,5 +64,5 @@ func (s *DisksSysstats) GetHistory() []Stat {
 }
 
 func (s *DisksSysstats) GetHistoryLast() Stat {
-	return s.history[s.count]
+	return s.history[s.count-1]
 }
