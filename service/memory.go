@@ -6,12 +6,18 @@ import (
 )
 
 type MemorySysstats struct {
-	history     [60]sysstats.MemStats
+	history     []Memory
 	countRepeat int
+	maxHistory  int
+}
+
+type Memory struct {
+	Stats sysstats.MemStats
+	Time  time.Time
 }
 
 func NewMemorySysstats() *MemorySysstats {
-	instance := &MemorySysstats{}
+	instance := &MemorySysstats{maxHistory: 60}
 
 	go instance._go()
 
@@ -24,20 +30,21 @@ func (c *MemorySysstats) _go() {
 
 		stat, _ := sysstats.GetMemStats()
 
-		if c.countRepeat != len(c.history)-1 {
-			c.history[c.countRepeat] = stat
+		instance := Memory{Stats: stat, Time: time.Now().UTC()}
+
+		if c.countRepeat < c.maxHistory {
+			c.history = append(c.history, instance)
 			c.countRepeat++
 		} else {
-			temp := c.history[1:]
-			c.history = [60]sysstats.MemStats(append(temp, stat))
+			c.history = append(c.history[1:], instance)
 		}
 	}
 }
 
-func (c *MemorySysstats) GetHistory() [60]sysstats.MemStats {
+func (c *MemorySysstats) GetHistory() []Memory {
 	return c.history
 }
 
-func (c *MemorySysstats) GetHistoryLast() sysstats.MemStats {
+func (c *MemorySysstats) GetHistoryLast() Memory {
 	return c.history[c.countRepeat]
 }

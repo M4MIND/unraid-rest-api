@@ -19,3 +19,9 @@ func (h handler) GetHistory() gin.HandlerFunc {
 		context.JSON(200, h.memoryService.GetHistory())
 	}
 }
+
+func (h handler) GetLastTick() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		context.JSON(200, h.memoryService.GetHistoryLast())
+	}
+}

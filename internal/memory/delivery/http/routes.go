@@ -7,4 +7,5 @@ import (
 
 func MapRoutes(group *gin.RouterGroup, handler memory.Handlers) {
 	group.GET("/history", handler.GetHistory())
+	group.GET("/tick", handler.GetLastTick())
 }

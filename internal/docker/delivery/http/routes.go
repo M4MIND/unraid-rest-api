@@ -6,5 +6,5 @@ import (
 )
 
 func MapRoutes(group *gin.RouterGroup, h docker.Handlers) {
-
+	group.GET("/containers", h.GetAllContainers())
 }

@@ -14,8 +14,10 @@ func NewServer() *Server {
 	return &Server{gin: gin.Default()}
 }
 
-func (s *Server) Run(cpuSysstats *service.CpuSysstats, memorySysstats *service.MemorySysstats, sysstats *service.NetworkSysstats, client *service.DockerService) {
-	s.MapHandlers(cpuSysstats, memorySysstats, sysstats, client)
+func (s *Server) Run(cpuSysstats *service.CpuSysstats, memorySysstats *service.MemorySysstats, networkSysstats *service.NetworkSysstats, dockerService *service.DockerService, sysstats *service.DisksSysstats) {
+	s.gin.Use(gin.Logger())
+
+	s.MapHandlers(cpuSysstats, memorySysstats, networkSysstats, dockerService, sysstats)
 
 	err := s.gin.Run("0.0.0.0:8554")
 
