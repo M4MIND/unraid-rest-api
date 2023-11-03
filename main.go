@@ -13,7 +13,7 @@ func main() {
 
 	info, _ := nvidia.GetInfo()
 
-	fmt.Println(info.Gpu.FbMemoryUsage.Total)
+	fmt.Println(info)
 
 	http.Run(
 		service.NewCpuSysstats(),

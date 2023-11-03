@@ -351,28 +351,22 @@ func (c *Nvidia) GetInfo() (info gpu.GpuInfo, status bool) {
 	if c.enable == false {
 		return gpu.GpuInfo{}, c.enable
 	}
+
 	out := c.exec()
 
 	return gpu.GpuInfo{
-		Model: out.Gpu.ProductName,
+		Model:         out.Gpu.ProductName,
+		DriverVersion: out.DriverVersion,
+		Fan:           out.Gpu.FanSpeed,
+		MemTotal:      out.Gpu.FbMemoryUsage.Total,
+		MemFree:       out.Gpu.FbMemoryUsage.Total,
+		MemUsed:       out.Gpu.FbMemoryUsage.Total,
+		MemReserved:   out.Gpu.FbMemoryUsage.Total,
+		TempMemory:    out.Gpu.Temperature.MemoryTemp,
+		TempGpu:       out.Gpu.Temperature.GpuTemp,
 	}, c.enable
 }
 
 func (c *Nvidia) GetStatus() bool {
 	return c.enable
 }
-
-//func (c *Nvidia) GetInfo() (smi gpu.GpuInfo, status bool) {
-//	if c.enable != false {
-//		return gpu.GpuInfo{}, c.enable
-//	}
-//	out := c.exec()
-//
-//	return gpu.GpuInfo{
-//		Model: out.Gpu.ProductName,
-//	}, c.enable
-//}
-//
-//func (c *Nvidia) GetStatus() bool {
-//	return c.enable
-//}
