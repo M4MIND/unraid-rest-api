@@ -17,12 +17,10 @@ func NewNetworkSysstats() *NetworkSysstats {
 }
 
 func (ctrl *NetworkSysstats) _go() {
-	count := 0
 	for {
 		avg, _ := sysstats.GetNetStatsInterval(1)
-
-		if count < ctrl.max {
-			ctrl.history[count] = avg
+		if ctrl.count < ctrl.max {
+			ctrl.history = append(ctrl.history, avg)
 			ctrl.count++
 		} else {
 			ctrl.history = append(ctrl.history[1:], avg)
