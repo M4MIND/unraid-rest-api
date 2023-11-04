@@ -15,6 +15,12 @@ func NewHandler(cpu *service.CpuSysstats) cpu.Handlers {
 	return &cpuHandler{cpuService: cpu}
 }
 
+func (s *cpuHandler) GetHistoryTick() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		context.JSON(200, s.cpuService.GetAvgHistoryLast())
+	}
+}
+
 func (s *cpuHandler) GetHistory() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.JSON(200, s.cpuService.GetAvgHistory())

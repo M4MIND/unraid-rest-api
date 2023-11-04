@@ -48,7 +48,7 @@ func (c *CpuSysstats) GetAvgHistory() []CpuAvg {
 }
 
 func (c *CpuSysstats) GetAvgHistoryLast() CpuAvg {
-	return c.avgHistory[c.countRepeat]
+	return c.avgHistory[c.countRepeat-1]
 }
 
 func (c *CpuSysstats) GetCpuInfo() ([]cpu.InfoStat, error) {
