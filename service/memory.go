@@ -1,8 +1,9 @@
 package service
 
 import (
-	"github.com/rafacas/sysstats"
 	"time"
+
+	"github.com/rafacas/sysstats"
 )
 
 type MemorySysstats struct {
@@ -12,8 +13,8 @@ type MemorySysstats struct {
 }
 
 type Memory struct {
-	Stats sysstats.MemStats
-	Time  time.Time
+	Stats sysstats.MemStats `json:"stats"`
+	Time  time.Time         `json:"time"`
 }
 
 func NewMemorySysstats() *MemorySysstats {
@@ -46,5 +47,14 @@ func (c *MemorySysstats) GetHistory() []Memory {
 }
 
 func (c *MemorySysstats) GetHistoryLast() Memory {
-	return c.history[c.countRepeat]
+	var lastIndex = len(c.history) - 1
+	if lastIndex < 0 {
+		stat, _ := sysstats.GetMemStats()
+
+		return Memory{
+			Stats: stat,
+			Time:  time.Now().UTC(),
+		}
+	}
+	return c.history[lastIndex]
 }

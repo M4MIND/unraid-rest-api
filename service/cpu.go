@@ -1,14 +1,15 @@
 package service
 
 import (
+	"time"
+
 	"github.com/rafacas/sysstats"
 	"github.com/shirou/gopsutil/cpu"
-	"time"
 )
 
 type CpuAvg struct {
-	Avg  sysstats.CpusAvgStats
-	Time time.Time
+	Avg  sysstats.CpusAvgStats `json:"average"`
+	Time time.Time             `json:"time"`
 }
 
 type CpuSysstats struct {
@@ -48,6 +49,15 @@ func (c *CpuSysstats) GetAvgHistory() []CpuAvg {
 }
 
 func (c *CpuSysstats) GetAvgHistoryLast() CpuAvg {
+	var lastIndex = len(c.avgHistory) - 1
+	if lastIndex < 0 {
+		avg, _ := sysstats.GetCpuStatsInterval(1)
+
+		return CpuAvg{
+			Avg:  avg,
+			Time: time.Now().UTC(),
+		}
+	}
 	return c.avgHistory[c.countRepeat-1]
 }
 
