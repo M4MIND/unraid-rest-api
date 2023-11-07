@@ -10,6 +10,12 @@ type handler struct {
 	networkSysstats *service.NetworkSysstats
 }
 
+func (h handler) GetAvgHistoryTick() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		context.JSON(200, h.networkSysstats.GetLastHistory())
+	}
+}
+
 func (h handler) GetAvgHistory() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		context.JSON(200, h.networkSysstats.GetHistory())
