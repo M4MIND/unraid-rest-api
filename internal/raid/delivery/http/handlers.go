@@ -3,14 +3,14 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/raid"
-	raid2 "unraid-rest-api/service/raid"
+	raidService "unraid-rest-api/service/raid"
 )
 
 type handler struct {
-	raidService raid2.RaidService
+	raidService raidService.RaidService
 }
 
-func NewHandler(raidService raid2.RaidService) raid.Handlers {
+func NewHandler(raidService raidService.RaidService) raid.Handlers {
 	return handler{raidService: raidService}
 }
 
