@@ -3,11 +3,11 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/docker"
-	"unraid-rest-api/service"
+	docker2 "unraid-rest-api/service/docker"
 )
 
 type dockerHandler struct {
-	dockerService *service.DockerService
+	dockerService *docker2.DockerService
 }
 
 func (d dockerHandler) StopContainer(id string) gin.HandlerFunc {
@@ -36,7 +36,7 @@ func (d dockerHandler) GetAllContainers() gin.HandlerFunc {
 	}
 }
 
-func NewHandler(s *service.DockerService) docker.Handlers {
+func NewHandler(s *docker2.DockerService) docker.Handlers {
 	return &dockerHandler{
 		dockerService: s,
 	}

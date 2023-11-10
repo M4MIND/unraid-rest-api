@@ -1,4 +1,4 @@
-package service
+package network
 
 import (
 	"github.com/rafacas/sysstats"

@@ -3,11 +3,17 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/disks"
-	"unraid-rest-api/service"
+	disks2 "unraid-rest-api/service/disks"
 )
 
 type disksHandler struct {
-	disksService *service.DisksSysstats
+	disksService *disks2.DisksSysstats
+}
+
+func (d disksHandler) GetDisksInfoLsblk() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		context.JSON(200, d.disksService.GetDisksLsblk())
+	}
 }
 
 func (d disksHandler) GetHistoryTick() gin.HandlerFunc {
@@ -22,7 +28,7 @@ func (d disksHandler) GetHistory() gin.HandlerFunc {
 	}
 }
 
-func NewHandler(s *service.DisksSysstats) disks.Handlers {
+func NewHandler(s *disks2.DisksSysstats) disks.Handlers {
 	return &disksHandler{
 		disksService: s,
 	}

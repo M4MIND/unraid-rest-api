@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"unraid-rest-api/service/gpu"
+	"unraid-rest-api/service/gpu/types"
 )
 
 type Nvidia struct {
@@ -314,7 +314,7 @@ type NvidiaSmiLog struct {
 	} `xml:"gpu"`
 }
 
-func NewNvidiaSmi() gpu.GpuInfoInstance {
+func NewNvidiaSmi() types.GpuInfoInstance {
 	instance := &Nvidia{enable: false, cmd: "/usr/bin/nvidia-smi"}
 	_, err := os.Stat(instance.cmd)
 
@@ -347,14 +347,14 @@ func (c *Nvidia) exec() NvidiaSmiLog {
 	return smi
 }
 
-func (c *Nvidia) GetInfo() (info gpu.GpuInfo, status bool) {
+func (c *Nvidia) GetInfo() (info types.GpuInfo, status bool) {
 	if c.enable == false {
-		return gpu.GpuInfo{}, c.enable
+		return types.GpuInfo{}, c.enable
 	}
 
 	out := c.exec()
 
-	return gpu.GpuInfo{
+	return types.GpuInfo{
 		Model:         out.Gpu.ProductName,
 		DriverVersion: out.DriverVersion,
 		Fan:           out.Gpu.FanSpeed,

@@ -3,14 +3,14 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/memory"
-	"unraid-rest-api/service"
+	memory2 "unraid-rest-api/service/memory"
 )
 
 type handler struct {
-	memoryService *service.MemorySysstats
+	memoryService *memory2.MemorySysstats
 }
 
-func NewHandler(memorySysstats *service.MemorySysstats) memory.Handlers {
+func NewHandler(memorySysstats *memory2.MemorySysstats) memory.Handlers {
 	return &handler{memoryService: memorySysstats}
 }
 

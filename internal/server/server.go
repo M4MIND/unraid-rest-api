@@ -2,7 +2,13 @@ package server
 
 import (
 	"log"
-	"unraid-rest-api/service"
+	"unraid-rest-api/service/cpu"
+	"unraid-rest-api/service/disks"
+	"unraid-rest-api/service/docker"
+	"unraid-rest-api/service/gpu"
+	"unraid-rest-api/service/memory"
+	"unraid-rest-api/service/network"
+	"unraid-rest-api/service/raid"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,10 +37,17 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 }
 
-func (s *Server) Run(cpuSysstats *service.CpuSysstats, memorySysstats *service.MemorySysstats, networkSysstats *service.NetworkSysstats, dockerService *service.DockerService, sysstats *service.DisksSysstats) {
+func (s *Server) Run(
+	cpuSysstats *cpu.CpuSysstats,
+	memorySysstats *memory.MemorySysstats,
+	networkSysstats *network.NetworkSysstats,
+	dockerService *docker.DockerService,
+	sysstats *disks.DisksSysstats,
+	gpuService *gpu.GpuService,
+	raidService raid.RaidService) {
 	s.gin.Use(corsMiddleware())
 
-	s.MapHandlers(cpuSysstats, memorySysstats, networkSysstats, dockerService, sysstats)
+	s.MapHandlers(cpuSysstats, memorySysstats, networkSysstats, dockerService, sysstats, gpuService, raidService)
 
 	err := s.gin.Run("0.0.0.0:8554")
 

@@ -2,16 +2,16 @@ package http
 
 import (
 	"unraid-rest-api/internal/cpu"
-	"unraid-rest-api/service"
+	cpu2 "unraid-rest-api/service/cpu"
 
 	"github.com/gin-gonic/gin"
 )
 
 type cpuHandler struct {
-	cpuService *service.CpuSysstats
+	cpuService *cpu2.CpuSysstats
 }
 
-func NewHandler(cpu *service.CpuSysstats) cpu.Handlers {
+func NewHandler(cpu *cpu2.CpuSysstats) cpu.Handlers {
 	return &cpuHandler{cpuService: cpu}
 }
 

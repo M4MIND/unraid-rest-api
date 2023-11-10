@@ -1,18 +1,20 @@
 package gpu
 
-type GpuInfoInstance interface {
-	GetInfo() (stats GpuInfo, status bool)
-	GetStatus() bool
+import (
+	"unraid-rest-api/service/gpu/types"
+	"unraid-rest-api/service/gpu/utils"
+)
+
+type GpuService struct {
+	instance types.GpuInfoInstance
 }
 
-type GpuInfo struct {
-	Model         string
-	DriverVersion string
-	Fan           string
-	MemReserved   string
-	MemUsed       string
-	MemFree       string
-	MemTotal      string
-	TempMemory    string
-	TempGpu       string
+func NewGpuService() *GpuService {
+	return &GpuService{
+		instance: utils.NewNvidiaSmi(),
+	}
+}
+
+func (c *GpuService) GetInfo() (stats types.GpuInfo, status bool) {
+	return c.instance.GetInfo()
 }

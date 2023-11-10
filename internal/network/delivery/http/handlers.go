@@ -3,11 +3,11 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/network"
-	"unraid-rest-api/service"
+	network2 "unraid-rest-api/service/network"
 )
 
 type handler struct {
-	networkSysstats *service.NetworkSysstats
+	networkSysstats *network2.NetworkSysstats
 }
 
 func (h handler) GetAvgHistoryTick() gin.HandlerFunc {
@@ -22,6 +22,6 @@ func (h handler) GetAvgHistory() gin.HandlerFunc {
 	}
 }
 
-func NewHandler(n *service.NetworkSysstats) network.Handlers {
+func NewHandler(n *network2.NetworkSysstats) network.Handlers {
 	return &handler{networkSysstats: n}
 }
