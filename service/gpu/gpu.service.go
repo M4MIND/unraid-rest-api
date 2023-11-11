@@ -5,16 +5,16 @@ import (
 	"unraid-rest-api/service/gpu/utils"
 )
 
-type GpuService struct {
+type Service struct {
 	instance types.GpuInfoInstance
 }
 
-func NewGpuService() *GpuService {
-	return &GpuService{
+func NewService() *Service {
+	return &Service{
 		instance: utils.NewNvidiaSmi(),
 	}
 }
 
-func (c *GpuService) GetInfo() (stats types.GpuInfo, status bool) {
+func (c *Service) GetInfo() (stats types.GpuInfo, status bool) {
 	return c.instance.GetInfo()
 }

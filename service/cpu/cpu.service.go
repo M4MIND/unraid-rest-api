@@ -2,35 +2,31 @@ package cpu
 
 import (
 	"time"
+	"unraid-rest-api/service/cpu/types"
 
 	"github.com/rafacas/sysstats"
 	"github.com/shirou/gopsutil/cpu"
 )
 
-type CpuAvg struct {
-	Avg  sysstats.CpusAvgStats `json:"average"`
-	Time time.Time             `json:"time"`
-}
-
-type CpuSysstats struct {
+type Service struct {
 	countRepeat int
 	maxHistory  int
-	avgHistory  []CpuAvg
+	avgHistory  []types.CpuAvg
 }
 
-func NewCpuSysstats() *CpuSysstats {
-	instance := &CpuSysstats{countRepeat: 0, maxHistory: 60}
+func NewService() *Service {
+	instance := &Service{countRepeat: 0, maxHistory: 60}
 
 	go instance._go()
 
 	return instance
 }
 
-func (c *CpuSysstats) _go() {
+func (c *Service) _go() {
 	for {
 		avg, _ := sysstats.GetCpuStatsInterval(1)
 
-		cpuAvgInstance := CpuAvg{
+		cpuAvgInstance := types.CpuAvg{
 			Avg:  avg,
 			Time: time.Now().UTC(),
 		}
@@ -44,16 +40,16 @@ func (c *CpuSysstats) _go() {
 	}
 }
 
-func (c *CpuSysstats) GetAvgHistory() []CpuAvg {
+func (c *Service) GetAvgHistory() []types.CpuAvg {
 	return c.avgHistory
 }
 
-func (c *CpuSysstats) GetAvgHistoryLast() CpuAvg {
+func (c *Service) GetAvgHistoryLast() types.CpuAvg {
 	var lastIndex = len(c.avgHistory) - 1
 	if lastIndex < 0 {
 		avg, _ := sysstats.GetCpuStatsInterval(1)
 
-		return CpuAvg{
+		return types.CpuAvg{
 			Avg:  avg,
 			Time: time.Now().UTC(),
 		}
@@ -61,6 +57,6 @@ func (c *CpuSysstats) GetAvgHistoryLast() CpuAvg {
 	return c.avgHistory[c.countRepeat-1]
 }
 
-func (c *CpuSysstats) GetCpuInfo() ([]cpu.InfoStat, error) {
+func (c *Service) GetCpuInfo() ([]cpu.InfoStat, error) {
 	return cpu.Info()
 }

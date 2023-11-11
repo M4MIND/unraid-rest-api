@@ -7,18 +7,18 @@ import (
 	"log"
 )
 
-type DockerService struct {
+type Service struct {
 	client *client.Client
 }
 
-func NewDockerClient() *DockerService {
+func NewService() *Service {
 	client, _ := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	return &DockerService{
+	return &Service{
 		client: client,
 	}
 }
 
-func (c *DockerService) GetAllContainers() []types.Container {
+func (c *Service) GetAllContainers() []types.Container {
 	containers, err := c.client.ContainerList(context.Background(), types.ContainerListOptions{
 		All: true,
 	})
