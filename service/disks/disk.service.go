@@ -1,25 +1,24 @@
 package disks
 
 import (
-	"encoding/json"
-	"os/exec"
 	"time"
 	"unraid-rest-api/service/disks/types"
-	"unraid-rest-api/service/disks/utils"
+	"unraid-rest-api/service/disks/utils/lsblk"
+	"unraid-rest-api/service/disks/utils/sysstat"
 )
 
 type Service struct {
 	history        []types.Stat
 	count          int
 	max            int
-	parser         utils.DisksUtils
+	parser         sysstat.DisksUtils
 	arrayDirectory string
-	mdStat         string
+	lsblk          *lsblk.Lsblk
 }
 
 func NewService() *Service {
-	instance := &Service{max: 120, mdStat: "/proc/mdstat"}
-	instance.parser = utils.NewDiskUtils()
+	instance := &Service{max: 120, lsblk: lsblk.NewService()}
+	instance.parser = sysstat.NewDiskUtils()
 
 	go instance._go()
 
@@ -50,12 +49,5 @@ func (s *Service) GetHistoryLast() types.Stat {
 }
 
 func (s *Service) GetDisksLsblk() types.Lsblk {
-
-	output, _ := exec.Command("lsblk", "--json", "--output-all", "--bytes").Output()
-
-	blockDevices := types.Lsblk{}
-
-	json.Unmarshal(output, &blockDevices)
-
-	return blockDevices
+	return s.lsblk.GetInfo()
 }
