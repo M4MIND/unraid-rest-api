@@ -3,25 +3,25 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/network"
-	network2 "unraid-rest-api/service/network"
+	"unraid-rest-api/service"
 )
 
 type handler struct {
-	networkSysstats *network2.NetworkSysstats
+	services service.ServiceContainer
 }
 
 func (h handler) GetAvgHistoryTick() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.JSON(200, h.networkSysstats.GetLastHistory())
+		context.JSON(200, h.services.NetworkService.GetLastHistory())
 	}
 }
 
 func (h handler) GetAvgHistory() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.JSON(200, h.networkSysstats.GetHistory())
+		context.JSON(200, h.services.NetworkService.GetHistory())
 	}
 }
 
-func NewHandler(n *network2.NetworkSysstats) network.Handlers {
-	return &handler{networkSysstats: n}
+func NewHandler(s service.ServiceContainer) network.Handlers {
+	return &handler{services: s}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/rafacas/sysstats"
 )
 
-type MemorySysstats struct {
+type Service struct {
 	history     []Memory
 	countRepeat int
 	maxHistory  int
@@ -17,15 +17,15 @@ type Memory struct {
 	Time  time.Time         `json:"time"`
 }
 
-func NewMemorySysstats() *MemorySysstats {
-	instance := &MemorySysstats{maxHistory: 60}
+func NewService() *Service {
+	instance := &Service{maxHistory: 60}
 
 	go instance._go()
 
 	return instance
 }
 
-func (c *MemorySysstats) _go() {
+func (c *Service) _go() {
 	for {
 		time.Sleep(1 * time.Second)
 
@@ -42,11 +42,11 @@ func (c *MemorySysstats) _go() {
 	}
 }
 
-func (c *MemorySysstats) GetHistory() []Memory {
+func (c *Service) GetHistory() []Memory {
 	return c.history
 }
 
-func (c *MemorySysstats) GetHistoryLast() Memory {
+func (c *Service) GetHistoryLast() Memory {
 	var lastIndex = len(c.history) - 1
 	if lastIndex < 0 {
 		stat, _ := sysstats.GetMemStats()

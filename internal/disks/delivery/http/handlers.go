@@ -3,33 +3,33 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/disks"
-	disks2 "unraid-rest-api/service/disks"
+	"unraid-rest-api/service"
 )
 
 type disksHandler struct {
-	disksService *disks2.DisksSysstats
+	services service.ServiceContainer
 }
 
 func (d disksHandler) GetDisksInfoLsblk() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.JSON(200, d.disksService.GetDisksLsblk())
+		context.JSON(200, d.services.DiskService.GetDisksLsblk())
 	}
 }
 
 func (d disksHandler) GetHistoryTick() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.JSON(200, d.disksService.GetHistoryLast())
+		context.JSON(200, d.services.DiskService.GetHistoryLast())
 	}
 }
 
 func (d disksHandler) GetHistory() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.JSON(200, d.disksService.GetHistory())
+		context.JSON(200, d.services.DiskService.GetHistory())
 	}
 }
 
-func NewHandler(s *disks2.DisksSysstats) disks.Handlers {
+func NewHandler(s service.ServiceContainer) disks.Handlers {
 	return &disksHandler{
-		disksService: s,
+		services: s,
 	}
 }

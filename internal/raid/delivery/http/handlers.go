@@ -3,19 +3,19 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/raid"
-	raidService "unraid-rest-api/service/raid"
+	"unraid-rest-api/service"
 )
 
 type handler struct {
-	raidService raidService.RaidService
+	services service.ServiceContainer
 }
 
-func NewHandler(raidService raidService.RaidService) raid.Handlers {
-	return handler{raidService: raidService}
+func NewHandler(s service.ServiceContainer) raid.Handlers {
+	return handler{services: s}
 }
 
 func (h handler) GetMdstat() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.JSON(200, h.raidService.GetMdcmdStat())
+		context.JSON(200, h.services.RaidService.GetMdcmdStat())
 	}
 }

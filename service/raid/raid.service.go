@@ -7,14 +7,14 @@ import (
 	"unraid-rest-api/service/raid/types"
 )
 
-type RaidService struct {
+type Service struct {
 }
 
-func NewRaidService() RaidService {
-	return RaidService{}
+func NewService() *Service {
+	return &Service{}
 }
 
-func (s *RaidService) GetMdcmdStat() types.Mdstats {
+func (s *Service) GetMdcmdStat() types.Mdstats {
 	mdstat, _ := os.ReadFile("/proc/mdstat")
 
 	out := types.Mdstats{}

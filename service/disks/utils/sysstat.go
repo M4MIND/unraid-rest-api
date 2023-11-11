@@ -7,40 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unraid-rest-api/service/disks/types"
 )
-
-type DiskSysstatsRaw struct {
-	Major        int    `json:"major"`        // Major number for the disk
-	Minor        int    `json:"minor"`        // Minor number for the disk
-	Name         string `json:"name"`         // Disk name
-	ReadIOs      uint64 `json:"readios"`      // # of reads completed since boot
-	ReadMerges   uint64 `json:"readmerges"`   // # of reads merged since boot
-	ReadSectors  uint64 `json:"readsectors"`  // # of sectors read since boot
-	ReadTicks    uint64 `json:"readticks"`    // # of milliseconds spent reading since boot
-	WriteIOs     uint64 `json:"writeios"`     // # of writes completed since boot
-	WriteMerges  uint64 `json:"writemerges"`  // # of writes merged since boot
-	WriteSectors uint64 `json:"writesectors"` // # of sectors written since boot
-	WriteTicks   uint64 `json:"writeticks"`   // # of milliseconds spent writing since boot
-	InFlight     uint64 `json:"inflight"`     // # of I/Os currently in progress
-	IOTicks      uint64 `json:"ioticks"`      // # of milliseconds spent doing I/Os since boot
-	TimeInQueue  uint64 `json:"timeinqueue"`  // Weighted # of milliseconds spent doing I/Os since boot
-	SampleTime   int64  `json:"sampletime"`   // Time when the sample was taken
-}
-
-type DiskAvgStats struct {
-	Major       int     `json:"major"`       // Major number for the disk
-	Minor       int     `json:"minor"`       // Minor number for the disk
-	Name        string  `json:"name"`        // Disk name
-	ReadIOs     float64 `json:"readios"`     // # of reads completed per second
-	ReadMerges  float64 `json:"readmerges"`  // # of reads merged per second
-	ReadBytes   float64 `json:"readbytes"`   // # of bytes read per second
-	WriteIOs    float64 `json:"writeios"`    // # of writes completed per second
-	WriteMerges float64 `json:"writemerges"` // # of writes merged per second
-	WriteBytes  float64 `json:"writebytes"`  // # of bytes written per second
-	InFlight    uint64  `json:"inflight"`    // # of I/Os currently in progress
-	IOTicks     uint64  `json:"ioticks"`     // # of milliseconds spent doing I/Os
-	TimeInQueue uint64  `json:"timeinqueue"` // Weighted # of milliseconds spent doing I/Os
-}
 
 type DisksUtils struct {
 }
@@ -49,8 +17,8 @@ func NewDiskUtils() DisksUtils {
 	return DisksUtils{}
 }
 
-func parse(line string) (diskRawStats DiskSysstatsRaw) {
-	diskRawStats = DiskSysstatsRaw{}
+func parse(line string) (diskRawStats types.SysstatRaw) {
+	diskRawStats = types.SysstatRaw{}
 	fields := strings.Fields(line)
 
 	for i := 0; i < len(fields); i++ {
@@ -103,9 +71,9 @@ func parse(line string) (diskRawStats DiskSysstatsRaw) {
 	return diskRawStats
 }
 
-func readProcDisksStats() []DiskSysstatsRaw {
+func readProcDisksStats() []types.SysstatRaw {
 	file, _ := os.Open("/proc/diskstats")
-	stats := make([]DiskSysstatsRaw, 0)
+	stats := make([]types.SysstatRaw, 0)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -121,12 +89,12 @@ func readProcDisksStats() []DiskSysstatsRaw {
 	return stats
 }
 
-func (c *DisksUtils) GetRawStats() []DiskSysstatsRaw {
+func (c *DisksUtils) GetRawStats() []types.SysstatRaw {
 	return readProcDisksStats()
 }
 
-func diskAvgStats(firstSample DiskSysstatsRaw, secondSample DiskSysstatsRaw) (diskAvgStats DiskAvgStats) {
-	diskAvgStats = DiskAvgStats{}
+func diskAvgStats(firstSample types.SysstatRaw, secondSample types.SysstatRaw) (diskAvgStats types.SysstatAvg) {
+	diskAvgStats = types.SysstatAvg{}
 
 	timeDelta := float64(secondSample.SampleTime - firstSample.SampleTime)
 
@@ -134,7 +102,7 @@ func diskAvgStats(firstSample DiskSysstatsRaw, secondSample DiskSysstatsRaw) (di
 	if firstSample.Major != secondSample.Major ||
 		firstSample.Minor != secondSample.Minor ||
 		firstSample.Name != secondSample.Name {
-		return DiskAvgStats{}
+		return types.SysstatAvg{}
 	} else {
 		diskAvgStats.Major = firstSample.Major
 		diskAvgStats.Minor = firstSample.Minor
@@ -155,10 +123,10 @@ func diskAvgStats(firstSample DiskSysstatsRaw, secondSample DiskSysstatsRaw) (di
 	return diskAvgStats
 }
 
-func (c *DisksUtils) GetAvgStatsInterval(interval int64) []DiskAvgStats {
+func (c *DisksUtils) GetAvgStatsInterval(interval int64) []types.SysstatAvg {
 	firstSamples := readProcDisksStats()
 
-	diskAvgStatsArr := make([]DiskAvgStats, 0)
+	diskAvgStatsArr := make([]types.SysstatAvg, 0)
 
 	time.Sleep(time.Duration(interval) * time.Second)
 
