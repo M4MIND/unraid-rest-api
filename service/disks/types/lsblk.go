@@ -47,7 +47,7 @@ type Lsblk struct {
 		RqSize       int         `json:"rq-size"`
 		Sched        string      `json:"sched"`
 		Serial       interface{} `json:"serial"`
-		Size         int         `json:"size"`
+		Size         int64       `json:"size"`
 		Start        interface{} `json:"start"`
 		State        interface{} `json:"state"`
 		Subsystems   string      `json:"subsystems"`

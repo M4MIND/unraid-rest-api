@@ -1,9 +1,9 @@
 package http
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/disks"
+	"unraid-rest-api/internal/disks/types"
 	"unraid-rest-api/service"
 )
 
@@ -13,11 +13,47 @@ type disksHandler struct {
 
 func (d disksHandler) GetArrayInfo() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		mdstat := d.services.RaidService.GetMdcmdStat()
+		mdstats := d.services.RaidService.GetMdcmdStat()
+		lsblk := d.services.DiskService.GetDisksLsblk()
 
-		fmt.Println(mdstat)
+		out := types.ArrayInfo{
+			Size: 0,
+			Used: 0,
+			Free: 0,
+		}
 
-		context.JSON(200, mdstat)
+		for _, mdstatItem := range mdstats.Stats {
+			smart := d.services.SmartService.GetDiskSmartInfo(mdstatItem.RdevName)
+
+			wrapper := types.ArrayInfoDevice{
+				DiskId:      mdstatItem.DiskId,
+				DiskState:   mdstatItem.DiskState,
+				RdevName:    mdstatItem.RdevName,
+				Temperature: smart.Temperature.Current,
+			}
+
+			for _, lsblkItem := range lsblk.Blockdevices {
+				if lsblkItem.Name == wrapper.RdevName {
+					wrapper.DiskSizeBytes = lsblkItem.Size
+					wrapper.IsHdd = lsblkItem.Rota
+					out.Size += lsblkItem.Size
+					continue
+				}
+				if lsblkItem.Kname == mdstatItem.DiskName {
+					wrapper.DiskUsedPercent = float32(lsblkItem.Fsused) / float32(lsblkItem.Size) * 100
+					wrapper.DiskUsedBytes = lsblkItem.Fsused
+					wrapper.Mount = lsblkItem.Mountpoint
+					out.Used += lsblkItem.Fsused
+					continue
+				}
+			}
+
+			out.Devices = append(out.Devices, wrapper)
+		}
+
+		out.Free = out.Size - out.Used
+
+		context.JSON(200, out)
 	}
 }
 
