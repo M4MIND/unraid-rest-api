@@ -7,7 +7,7 @@ import (
 )
 
 type handler struct {
-	services service.ServiceContainer
+	services service.Container
 }
 
 func (h handler) GetAvgHistoryTick() gin.HandlerFunc {
@@ -22,6 +22,6 @@ func (h handler) GetAvgHistory() gin.HandlerFunc {
 	}
 }
 
-func NewHandler(s service.ServiceContainer) network.Handlers {
+func NewHandler(s service.Container) network.Handlers {
 	return &handler{services: s}
 }

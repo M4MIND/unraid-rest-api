@@ -7,7 +7,7 @@ import (
 )
 
 type disksHandler struct {
-	services service.ServiceContainer
+	services service.Container
 }
 
 func (d disksHandler) GetDisksInfoLsblk() gin.HandlerFunc {
@@ -28,7 +28,7 @@ func (d disksHandler) GetHistory() gin.HandlerFunc {
 	}
 }
 
-func NewHandler(s service.ServiceContainer) disks.Handlers {
+func NewHandler(s service.Container) disks.Handlers {
 	return &disksHandler{
 		services: s,
 	}

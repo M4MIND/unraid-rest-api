@@ -7,10 +7,10 @@ import (
 )
 
 type handler struct {
-	services service.ServiceContainer
+	services service.Container
 }
 
-func NewHandler(s service.ServiceContainer) memory.Handlers {
+func NewHandler(s service.Container) memory.Handlers {
 	return &handler{services: s}
 }
 

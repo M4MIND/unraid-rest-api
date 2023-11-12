@@ -7,7 +7,7 @@ import (
 )
 
 type dockerHandler struct {
-	services service.ServiceContainer
+	services service.Container
 }
 
 func (d dockerHandler) StopContainer(id string) gin.HandlerFunc {
@@ -36,7 +36,7 @@ func (d dockerHandler) GetAllContainers() gin.HandlerFunc {
 	}
 }
 
-func NewHandler(s service.ServiceContainer) docker.Handlers {
+func NewHandler(s service.Container) docker.Handlers {
 	return &dockerHandler{
 		services: s,
 	}

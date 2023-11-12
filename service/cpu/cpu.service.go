@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"time"
+	"unraid-rest-api/service"
 	"unraid-rest-api/service/cpu/types"
 
 	"github.com/rafacas/sysstats"
@@ -9,6 +10,7 @@ import (
 )
 
 type Service struct {
+	Container   service.Container
 	countRepeat int
 	maxHistory  int
 	avgHistory  []types.CpuAvg
