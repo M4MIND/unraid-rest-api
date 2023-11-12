@@ -29,8 +29,6 @@ func main() {
 		smart.NewService(),
 	)
 
-	serviceContainer.SmartService.GetDisksSmartInfo()
-
 	http.Run(
 		serviceContainer,
 	)
