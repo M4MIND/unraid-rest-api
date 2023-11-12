@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/internal/disks"
 	"unraid-rest-api/service"
@@ -8,6 +9,16 @@ import (
 
 type disksHandler struct {
 	services service.Container
+}
+
+func (d disksHandler) GetArrayInfo() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		mdstat := d.services.RaidService.GetMdcmdStat()
+
+		fmt.Println(mdstat)
+
+		context.JSON(200, mdstat)
+	}
 }
 
 func (d disksHandler) GetDisksInfoLsblk() gin.HandlerFunc {

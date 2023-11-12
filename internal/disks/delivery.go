@@ -6,4 +6,5 @@ type Handlers interface {
 	GetHistory() gin.HandlerFunc
 	GetHistoryTick() gin.HandlerFunc
 	GetDisksInfoLsblk() gin.HandlerFunc
+	GetArrayInfo() gin.HandlerFunc
 }
