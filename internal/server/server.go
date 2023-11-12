@@ -30,7 +30,7 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 }
 
-func (s *Server) Run(serviceContainer service.ServiceContainer) {
+func (s *Server) Run(serviceContainer service.Container) {
 	s.gin.Use(corsMiddleware())
 
 	s.MapHandlers(serviceContainer)

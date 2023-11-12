@@ -10,6 +10,7 @@ import (
 	"unraid-rest-api/service/memory"
 	"unraid-rest-api/service/network"
 	"unraid-rest-api/service/raid"
+	"unraid-rest-api/service/smart"
 	"unraid-rest-api/service/unraid"
 )
 
@@ -25,7 +26,10 @@ func main() {
 		gpu.NewService(),
 		raid.NewService(),
 		unraid.NewService(),
+		smart.NewService(),
 	)
+
+	serviceContainer.SmartService.GetDisksSmartInfo()
 
 	http.Run(
 		serviceContainer,

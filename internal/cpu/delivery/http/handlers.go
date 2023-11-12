@@ -7,10 +7,10 @@ import (
 )
 
 type cpuHandler struct {
-	services service.ServiceContainer
+	services service.Container
 }
 
-func NewHandler(services service.ServiceContainer) cpu.Handlers {
+func NewHandler(services service.Container) cpu.Handlers {
 	return &cpuHandler{services: services}
 }
 

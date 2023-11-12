@@ -8,10 +8,11 @@ import (
 	"unraid-rest-api/service/memory"
 	"unraid-rest-api/service/network"
 	"unraid-rest-api/service/raid"
+	"unraid-rest-api/service/smart"
 	"unraid-rest-api/service/unraid"
 )
 
-type ServiceContainer struct {
+type Container struct {
 	CpuService     *cpu.Service
 	MemoryService  *memory.Service
 	NetworkService *network.Service
@@ -20,6 +21,7 @@ type ServiceContainer struct {
 	GpuService     *gpu.Service
 	RaidService    *raid.Service
 	UnraidService  *unraid.Service
+	SmartService   *smart.Service
 }
 
 func NewServiceContainer(
@@ -31,9 +33,10 @@ func NewServiceContainer(
 	gpuService *gpu.Service,
 	raidService *raid.Service,
 	unraidService *unraid.Service,
-) ServiceContainer {
+	smart *smart.Service,
+) Container {
 
-	return ServiceContainer{
+	container := Container{
 		CpuService:     cpuService,
 		MemoryService:  memoryService,
 		NetworkService: networkService,
@@ -42,5 +45,13 @@ func NewServiceContainer(
 		GpuService:     gpuService,
 		RaidService:    raidService,
 		UnraidService:  unraidService,
+		SmartService:   smart,
 	}
+
+	cpuService.Container = container
+	diskService.Container = container
+	smart.Container = container
+	raidService.Container = container
+
+	return container
 }
