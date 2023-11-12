@@ -2,7 +2,6 @@ package smart
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"unraid-rest-api/service/smart/types"
 )
@@ -15,9 +14,7 @@ func NewService() *Service {
 }
 
 func (s *Service) GetDiskSmartInfo(disk string) types.SmartCtl {
-	output, _ := exec.Command("smartctl", "-j", "-a", "/dev/"+disk).Output()
-
-	fmt.Println()
+	output, _ := exec.Command("smartctl", "-j", "-a", "-n", "standby", "/dev/"+disk).Output()
 
 	smart := types.SmartCtl{}
 
