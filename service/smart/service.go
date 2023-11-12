@@ -21,7 +21,11 @@ func (s *Service) GetDiskSmartInfo(disk string) types.SmartCtl {
 
 	smart := types.SmartCtl{}
 
-	json.Unmarshal(output, &smart)
+	err := json.Unmarshal(output, &smart)
+
+	if err != nil {
+		return types.SmartCtl{}
+	}
 
 	return smart
 }
