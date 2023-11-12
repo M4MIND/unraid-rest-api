@@ -48,10 +48,5 @@ func NewServiceContainer(
 		SmartService:   smart,
 	}
 
-	cpuService.Container = container
-	diskService.Container = container
-	smart.Container = container
-	raidService.Container = container
-
 	return container
 }
