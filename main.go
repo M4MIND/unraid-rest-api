@@ -2,7 +2,6 @@ package main
 
 import (
 	"unraid-rest-api/api/server"
-	disksMonitoring "unraid-rest-api/pkg/monitoring/disks"
 	"unraid-rest-api/pkg/service"
 	"unraid-rest-api/pkg/service/cpu"
 	"unraid-rest-api/pkg/service/disks"
@@ -29,8 +28,6 @@ func main() {
 		unraid.NewService(),
 		smart.NewService(),
 	)
-
-	go disksMonitoring.New(serviceContainer).Work()
 
 	http.Run(serviceContainer)
 }
