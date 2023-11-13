@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"time"
 	handler "unraid-rest-api/api/websocket"
 )
 
@@ -69,15 +70,20 @@ func (s *Ws) Handler() gin.HandlerFunc {
 			if message.EventType == "subscribe" {
 				s.topics[message.Subscription] = connect
 			}
+			if message.EventType == "unsubscribe" {
+				delete(s.topics, message.Subscription)
+			}
 		}
 
 	}
 }
 
-func (s *Ws) AddTopic(topic string, fn func() handler.ServerMessage) {
+func (s *Ws) AddTopic(topic string, fn func() handler.ServerMessage, sleepSeconds int64) {
 	go func() {
 		for {
 			s.SendMessage(topic, fn())
+
+			time.Sleep(time.Duration(sleepSeconds) * time.Second)
 		}
 	}()
 }

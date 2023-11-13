@@ -1,7 +1,7 @@
 package ws
 
 import (
-	"time"
+	"encoding/json"
 	"unraid-rest-api/api/websocket"
 	"unraid-rest-api/pkg/service"
 )
@@ -11,9 +11,11 @@ type Handler struct {
 }
 
 func (h Handler) CpuState() websocket.ServerMessage {
-	time.Sleep(1 * time.Second)
+
+	data, _ := json.Marshal(h.service.CpuService.GetAvgHistoryLast())
+
 	return websocket.ServerMessage{
-		Data: []byte("asd"),
+		Data: data,
 	}
 }
 
