@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
+	"sync"
 	"time"
 	handler "unraid-rest-api/api/websocket"
 )
@@ -18,8 +18,8 @@ var upgrader = websocket.Upgrader{
 }
 
 type Ws struct {
-	clients map[*websocket.Conn]bool
-	topics  map[string][]*websocket.Conn
+	clients map[*WebsocketClient]bool
+	topics  map[string][]*WebsocketClient
 }
 
 type Message struct {
@@ -27,10 +27,21 @@ type Message struct {
 	Subscription string `json:"subscription"`
 }
 
+type WebsocketClient struct {
+	Connect *websocket.Conn
+	Mutex   sync.Mutex
+}
+
+func (class *WebsocketClient) SendJson(message handler.ServerMessage) error {
+	class.Mutex.Lock()
+	defer class.Mutex.Unlock()
+	return class.Connect.WriteJSON(message)
+}
+
 func NewWebsocket() *Ws {
 	return &Ws{
-		clients: make(map[*websocket.Conn]bool),
-		topics:  make(map[string][]*websocket.Conn),
+		clients: make(map[*WebsocketClient]bool),
+		topics:  make(map[string][]*WebsocketClient),
 	}
 }
 
@@ -38,10 +49,11 @@ func (s *Ws) SendMessage(topic string, message handler.ServerMessage) {
 	fmt.Println(topic, "Try send message")
 
 	for _, v := range s.topics[topic] {
-		fmt.Println("Send Message", v.RemoteAddr())
-		err := v.WriteJSON(message)
+		err := v.SendJson(message)
 		if err != nil {
-			log.Println(err)
+			return
+		} else {
+			fmt.Println("Send Message", v.Connect.RemoteAddr())
 		}
 	}
 }
@@ -51,11 +63,15 @@ func (s *Ws) Handler() gin.HandlerFunc {
 
 		connect, err := upgrader.Upgrade(context.Writer, context.Request, nil)
 
+		wsClient := &WebsocketClient{
+			Connect: connect,
+		}
+
 		defer connect.Close()
 
-		defer delete(s.clients, connect)
+		defer delete(s.clients, wsClient)
 
-		s.clients[connect] = true
+		s.clients[wsClient] = true
 
 		if err != nil {
 			return
@@ -66,22 +82,22 @@ func (s *Ws) Handler() gin.HandlerFunc {
 			err := connect.ReadJSON(&message)
 
 			if err != nil {
-				s.RemoveClientFromAllTopic(connect)
+				s.RemoveClientFromAllTopic(wsClient)
 				break
 			}
 
 			if message.EventType == "subscribe" {
-				s.AddClientToTopic(message.Subscription, connect)
+				s.AddClientToTopic(message.Subscription, wsClient)
 			}
 			if message.EventType == "unsubscribe" {
-				s.RemoveClientFromTopic(message.Subscription, connect)
+				s.RemoveClientFromTopic(message.Subscription, wsClient)
 			}
 		}
 
 	}
 }
 
-func (s *Ws) AddClientToTopic(topic string, client *websocket.Conn) bool {
+func (s *Ws) AddClientToTopic(topic string, client *WebsocketClient) bool {
 	for _, v := range s.topics[topic] {
 		if v == client {
 			return false
@@ -93,13 +109,13 @@ func (s *Ws) AddClientToTopic(topic string, client *websocket.Conn) bool {
 	return true
 }
 
-func (s *Ws) RemoveClientFromAllTopic(client *websocket.Conn) {
+func (s *Ws) RemoveClientFromAllTopic(client *WebsocketClient) {
 	for i, _ := range s.topics {
 		s.RemoveClientFromTopic(i, client)
 	}
 }
 
-func (s *Ws) RemoveClientFromTopic(topic string, client *websocket.Conn) bool {
+func (s *Ws) RemoveClientFromTopic(topic string, client *WebsocketClient) bool {
 	for i, v := range s.topics[topic] {
 		if v == client {
 			s.topics[topic] = append(s.topics[topic][:i], s.topics[topic][i+1:]...)
@@ -117,7 +133,7 @@ func (s *Ws) CreateTopic(topic string, fn func() handler.ServerMessage, sleep ti
 	_, ok := s.topics[topic]
 
 	if !ok {
-		s.topics[topic] = make([]*websocket.Conn, 0)
+		s.topics[topic] = make([]*WebsocketClient, 0)
 	}
 
 	go func() {

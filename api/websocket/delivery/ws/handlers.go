@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"github.com/gin-gonic/gin"
 	"unraid-rest-api/api/websocket"
 	"unraid-rest-api/pkg/service"
 )
@@ -11,7 +12,7 @@ type Handler struct {
 
 func (h Handler) PingPong() websocket.ServerMessage {
 	return websocket.ServerMessage{
-		Data: []byte("Ping"),
+		Data: gin.H{"Ping": "Pong"},
 	}
 }
 

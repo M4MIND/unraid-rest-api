@@ -8,7 +8,7 @@ import (
 
 func MapRoutes(g *gin.RouterGroup, w websocket.Handlers) {
 	server := NewWebsocket()
-	///server.CreateTopic("ping-pong", w.PingPong, 10)
+	server.CreateTopic("ping-pong", w.PingPong, time.Second)
 	server.CreateTopic("cpu-data", w.CpuState, time.Second)
 
 	g.GET("", server.Handler())
