@@ -46,14 +46,13 @@ func NewWebsocket() *Ws {
 }
 
 func (s *Ws) SendMessage(topic string, message handler.ServerMessage) {
-	fmt.Println(topic, "Try send message")
 
 	for _, v := range s.topics[topic] {
 		err := v.SendJson(message)
 		if err != nil {
-			return
+			fmt.Println("Can't send data to client ", v.Connect.RemoteAddr())
+			continue
 		} else {
-			fmt.Println("Send Message", v.Connect.RemoteAddr())
 		}
 	}
 }
@@ -68,8 +67,8 @@ func (s *Ws) Handler() gin.HandlerFunc {
 		}
 
 		defer connect.Close()
-
 		defer delete(s.clients, wsClient)
+		defer fmt.Println("Client disconnected:", wsClient.Connect.RemoteAddr(), "Count clients:", len(s.clients))
 
 		s.clients[wsClient] = true
 
@@ -83,7 +82,6 @@ func (s *Ws) Handler() gin.HandlerFunc {
 
 			if err != nil {
 				s.RemoveClientFromAllTopic(wsClient)
-				fmt.Println("Client disconnected:", wsClient.Connect.RemoteAddr(), "Count clients:", len(s.clients)-1)
 				break
 			}
 
@@ -94,7 +92,6 @@ func (s *Ws) Handler() gin.HandlerFunc {
 				s.RemoveClientFromTopic(message.Subscription, wsClient)
 			}
 		}
-
 	}
 }
 
@@ -130,7 +127,7 @@ func (s *Ws) HasTopicClients(topic string) bool {
 	return len(s.topics[topic]) > 0
 }
 
-func (s *Ws) CreateTopic(topic string, fn func() handler.ServerMessage, sleep time.Duration) {
+func (s *Ws) CreateTopic(topic string, fn func() (interface{}, error), sleep time.Duration) {
 	_, ok := s.topics[topic]
 
 	if !ok {
@@ -139,12 +136,19 @@ func (s *Ws) CreateTopic(topic string, fn func() handler.ServerMessage, sleep ti
 
 	go func() {
 		for {
-			if s.HasTopicClients(topic) == false {
+			if !s.HasTopicClients(topic) {
+				time.Sleep(1)
 				continue
 			}
 
-			message := fn()
-			message.Topic = topic
+			out, err := fn()
+
+			message := handler.ServerMessage{Topic: topic, Data: out}
+
+			if err != nil {
+				message.Error = gin.H{"message": err.Error()}
+			}
+
 			s.SendMessage(topic, message)
 
 			time.Sleep(sleep)
