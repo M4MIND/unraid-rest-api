@@ -11,5 +11,5 @@ func MapRoutes(g *gin.RouterGroup, w websocket.Handlers) {
 	server.CreateTopic("ping-pong", w.PingPong, time.Second)
 	server.CreateTopic("cpu-data", w.CpuState, time.Second)
 
-	g.GET("", server.Handler())
+	g.GET("/topics", server.Handler())
 }
