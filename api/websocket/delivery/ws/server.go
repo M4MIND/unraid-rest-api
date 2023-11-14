@@ -22,11 +22,6 @@ type Ws struct {
 	topics  map[string][]*WebsocketClient
 }
 
-type Message struct {
-	EventType    string `json:"eventType"`
-	Subscription string `json:"subscription"`
-}
-
 type WebsocketClient struct {
 	Connect *websocket.Conn
 	Mutex   sync.Mutex
@@ -77,7 +72,7 @@ func (s *Ws) Handler() gin.HandlerFunc {
 		}
 
 		for {
-			message := Message{}
+			message := handler.Message{}
 			err := connect.ReadJSON(&message)
 
 			if err != nil {
