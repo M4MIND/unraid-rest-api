@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"unraid-rest-api/api/websocket"
 	"unraid-rest-api/pkg/service"
@@ -16,9 +15,7 @@ func (h Handler) PingPong() (interface{}, error) {
 }
 
 func (h Handler) CpuState() (interface{}, error) {
-
-	return nil, errors.New("ERRROR")
-	//return h.service.CpuService.GetAvgHistoryLast(), nil
+	return h.service.CpuService.GetAvgHistoryLast(), nil
 }
 
 func NewHandler(s service.Container) websocket.Handlers {
