@@ -18,8 +18,10 @@ var upgrader = websocket.Upgrader{
 }
 
 type Ws struct {
-	clients map[*WebsocketClient]bool
-	topics  map[string][]*WebsocketClient
+	clients                   map[*WebsocketClient]bool
+	topics                    map[string][]*WebsocketClient
+	topicsMessageForNewClient map[string]handler.ServerMessage
+	topicHasClient            map[string]bool
 }
 
 type WebsocketClient struct {
@@ -35,8 +37,10 @@ func (instance *WebsocketClient) SendJson(message handler.ServerMessage) error {
 
 func NewWebsocket() *Ws {
 	return &Ws{
-		clients: make(map[*WebsocketClient]bool),
-		topics:  make(map[string][]*WebsocketClient),
+		clients:                   make(map[*WebsocketClient]bool),
+		topics:                    make(map[string][]*WebsocketClient),
+		topicsMessageForNewClient: make(map[string]handler.ServerMessage),
+		topicHasClient:            make(map[string]bool),
 	}
 }
 
@@ -63,6 +67,7 @@ func (instance *Ws) Handler() gin.HandlerFunc {
 
 		defer connect.Close()
 		defer delete(instance.clients, wsClient)
+		defer instance.RemoveClientFromAllTopic(wsClient)
 		defer fmt.Println("Client disconnected:", wsClient.Connect.RemoteAddr(), "Count clients:", len(instance.clients))
 
 		instance.clients[wsClient] = true
@@ -76,7 +81,6 @@ func (instance *Ws) Handler() gin.HandlerFunc {
 			err := connect.ReadJSON(&message)
 
 			if err != nil {
-				instance.RemoveClientFromAllTopic(wsClient)
 				break
 			}
 
@@ -98,6 +102,7 @@ func (instance *Ws) AddClientToTopic(topic string, client *WebsocketClient) bool
 	}
 
 	instance.topics[topic] = append(instance.topics[topic], client)
+	instance.topicHasClient[topic] = true
 
 	return true
 }
@@ -112,6 +117,10 @@ func (instance *Ws) RemoveClientFromTopic(topic string, client *WebsocketClient)
 	for i, clientItem := range instance.topics[topic] {
 		if clientItem == client {
 			instance.topics[topic] = append(instance.topics[topic][:i], instance.topics[topic][i+1:]...)
+
+			if len(instance.topics[topic]) <= 0 {
+				instance.topicHasClient[topic] = false
+			}
 			return true
 		}
 	}
@@ -119,7 +128,7 @@ func (instance *Ws) RemoveClientFromTopic(topic string, client *WebsocketClient)
 }
 
 func (instance *Ws) HasTopicClients(topic string) bool {
-	return len(instance.topics[topic]) > 0
+	return instance.topicHasClient[topic]
 }
 
 func (instance *Ws) CreateTopic(topic string, fn func() (interface{}, error), sleep time.Duration) {
@@ -131,13 +140,7 @@ func (instance *Ws) CreateTopic(topic string, fn func() (interface{}, error), sl
 
 	go func() {
 		for {
-			if !instance.HasTopicClients(topic) {
-				time.Sleep(1)
-				continue
-			}
-
 			handlerMessage, err := fn()
-
 			serverMessage := handler.ServerMessage{Topic: topic, Data: handlerMessage}
 
 			if err != nil {
@@ -145,6 +148,7 @@ func (instance *Ws) CreateTopic(topic string, fn func() (interface{}, error), sl
 			}
 
 			instance.SendMessage(topic, serverMessage)
+			instance.topicsMessageForNewClient[topic] = serverMessage
 
 			time.Sleep(sleep)
 		}
