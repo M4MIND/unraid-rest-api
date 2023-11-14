@@ -139,6 +139,10 @@ func (s *Ws) CreateTopic(topic string, fn func() handler.ServerMessage, sleep ti
 
 	go func() {
 		for {
+			if s.HasTopicClients(topic) == false {
+				continue
+			}
+
 			message := fn()
 			message.Topic = topic
 			s.SendMessage(topic, message)
