@@ -83,6 +83,7 @@ func (s *Ws) Handler() gin.HandlerFunc {
 
 			if err != nil {
 				s.RemoveClientFromAllTopic(wsClient)
+				fmt.Println("Client disconnected:", wsClient.Connect.RemoteAddr(), "Count clients:", len(s.clients)-1)
 				break
 			}
 
