@@ -1,8 +1,10 @@
 package ws
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 	"time"
 	handler "unraid-rest-api/api/websocket"
@@ -17,7 +19,7 @@ var upgrader = websocket.Upgrader{
 
 type Ws struct {
 	clients map[*websocket.Conn]bool
-	topics  map[string]*websocket.Conn
+	topics  map[string][]*websocket.Conn
 }
 
 type Message struct {
@@ -28,15 +30,18 @@ type Message struct {
 func NewWebsocket() *Ws {
 	return &Ws{
 		clients: make(map[*websocket.Conn]bool),
-		topics:  make(map[string]*websocket.Conn),
+		topics:  make(map[string][]*websocket.Conn),
 	}
 }
 
 func (s *Ws) SendMessage(topic string, message handler.ServerMessage) {
-	for _, v := range s.topics {
+	fmt.Println(topic, "Try send message")
+
+	for _, v := range s.topics[topic] {
+		fmt.Println("Send Message", v.RemoteAddr())
 		err := v.WriteJSON(message)
 		if err != nil {
-			return
+			log.Println(err)
 		}
 	}
 }
@@ -53,9 +58,6 @@ func (s *Ws) Handler() gin.HandlerFunc {
 		s.clients[connect] = true
 
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
 			return
 		}
 
@@ -64,21 +66,60 @@ func (s *Ws) Handler() gin.HandlerFunc {
 			err := connect.ReadJSON(&message)
 
 			if err != nil {
-				break // Выходим из цикла, если клиент пытается закрыть соединение или связь прервана
+				s.RemoveClientFromAllTopic(connect)
+				break
 			}
 
 			if message.EventType == "subscribe" {
-				s.topics[message.Subscription] = connect
+				s.AddClientToTopic(message.Subscription, connect)
 			}
 			if message.EventType == "unsubscribe" {
-				delete(s.topics, message.Subscription)
+				s.RemoveClientFromTopic(message.Subscription, connect)
 			}
 		}
 
 	}
 }
 
+func (s *Ws) AddClientToTopic(topic string, client *websocket.Conn) bool {
+	for _, v := range s.topics[topic] {
+		if v == client {
+			return false
+		}
+	}
+
+	s.topics[topic] = append(s.topics[topic], client)
+
+	return true
+}
+
+func (s *Ws) RemoveClientFromAllTopic(client *websocket.Conn) {
+	for i, _ := range s.topics {
+		s.RemoveClientFromTopic(i, client)
+	}
+}
+
+func (s *Ws) RemoveClientFromTopic(topic string, client *websocket.Conn) bool {
+	for i, v := range s.topics[topic] {
+		if v == client {
+			s.topics[topic] = append(s.topics[topic][:i], s.topics[topic][i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Ws) HasTopicClients(topic string) bool {
+	return len(s.topics[topic]) > 0
+}
+
 func (s *Ws) AddTopic(topic string, fn func() handler.ServerMessage, sleepSeconds int64) {
+	_, ok := s.topics[topic]
+
+	if !ok {
+		s.topics[topic] = make([]*websocket.Conn, 0)
+	}
+
 	go func() {
 		for {
 			s.SendMessage(topic, fn())
