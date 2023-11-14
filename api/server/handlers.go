@@ -8,14 +8,12 @@ import (
 	networkHttp "unraid-rest-api/api/network/delivery/http"
 	raidHttp "unraid-rest-api/api/raid/delivery/http"
 	smartHttp "unraid-rest-api/api/smart/delivery/http"
+	websocketWs "unraid-rest-api/api/websocket/delivery/ws"
 	"unraid-rest-api/pkg/service"
-	"unraid-rest-api/websocket"
 )
 
 func (s *Server) MapHandlers(serviceContainer service.Container) {
 	v1 := s.Gin.Group("/api/v1")
-
-	ws := websocket.NewServer()
 
 	cpuHttp.MapRoutes(v1.Group("/cpu"), cpuHttp.NewHandler(serviceContainer))
 	memoryHttp.MapRoutes(v1.Group("/memory"), memoryHttp.NewHandler(serviceContainer))
@@ -24,6 +22,5 @@ func (s *Server) MapHandlers(serviceContainer service.Container) {
 	disksHttp.MapRoutes(v1.Group("/disks"), disksHttp.NewHandler(serviceContainer))
 	raidHttp.MapRoutes(v1.Group("/raid"), raidHttp.NewHandler(serviceContainer))
 	smartHttp.MapRoutes(v1.Group("/smart"), smartHttp.NewHandler(serviceContainer))
-
-	v1.Any("/ws", ws.Handler)
+	websocketWs.MapRoutes(v1.Group("/ws"), websocketWs.NewHandler(serviceContainer))
 }
