@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"encoding/json"
 	"unraid-rest-api/api/websocket"
 	"unraid-rest-api/pkg/service"
 )
@@ -18,10 +17,8 @@ func (h Handler) PingPong() websocket.ServerMessage {
 
 func (h Handler) CpuState() websocket.ServerMessage {
 
-	data, _ := json.Marshal(h.service.CpuService.GetAvgHistoryLast())
-
 	return websocket.ServerMessage{
-		Data: data,
+		Data: h.service.CpuService.GetAvgHistoryLast(),
 	}
 }
 
