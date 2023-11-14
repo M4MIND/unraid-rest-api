@@ -10,17 +10,12 @@ type Handler struct {
 	service service.Container
 }
 
-func (h Handler) PingPong() websocket.ServerMessage {
-	return websocket.ServerMessage{
-		Data: gin.H{"Ping": "Pong"},
-	}
+func (h Handler) PingPong() (interface{}, error) {
+	return gin.H{"Ping": "Pong"}, nil
 }
 
-func (h Handler) CpuState() websocket.ServerMessage {
-
-	return websocket.ServerMessage{
-		Data: h.service.CpuService.GetAvgHistoryLast(),
-	}
+func (h Handler) CpuState() (interface{}, error) {
+	return h.service.CpuService.GetAvgHistoryLast(), nil
 }
 
 func NewHandler(s service.Container) websocket.Handlers {
