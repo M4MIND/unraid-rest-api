@@ -113,7 +113,7 @@ func (s *Ws) HasTopicClients(topic string) bool {
 	return len(s.topics[topic]) > 0
 }
 
-func (s *Ws) AddTopic(topic string, fn func() handler.ServerMessage, sleepSeconds int64) {
+func (s *Ws) CreateTopic(topic string, fn func() handler.ServerMessage, sleepSeconds int64) {
 	_, ok := s.topics[topic]
 
 	if !ok {

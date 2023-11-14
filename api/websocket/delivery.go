@@ -7,6 +7,7 @@ import (
 
 type Handlers interface {
 	CpuState() ServerMessage
+	PingPong() ServerMessage
 }
 
 type ServerMessage struct {
