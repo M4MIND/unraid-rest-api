@@ -1,5 +1,7 @@
 package websocket
 
+import "time"
+
 type ServerMessage struct {
 	Data  interface{} `json:"data"`
 	Topic string      `json:"topic"`
@@ -13,4 +15,9 @@ type ServerMessageErrorData struct {
 type Message struct {
 	EventType    string `json:"eventType"`
 	Subscription string `json:"subscription"`
+}
+
+type HandlerParams struct {
+	Sleep    time.Duration
+	SendOnce bool
 }

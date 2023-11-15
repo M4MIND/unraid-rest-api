@@ -19,7 +19,8 @@ var upgrader = websocket.Upgrader{
 
 type Ws struct {
 	clients                   map[*WebsocketClient]bool
-	topics                    map[string][]*WebsocketClient
+	topicHandlers             map[string]func() (interface{}, error)
+	topicListeners            map[string][]*WebsocketClient
 	topicsMessageForNewClient map[string]handler.ServerMessage
 	topicHasClient            map[string]bool
 }
@@ -38,7 +39,8 @@ func (instance *WebsocketClient) SendJson(message handler.ServerMessage) error {
 func NewWebsocket() *Ws {
 	return &Ws{
 		clients:                   make(map[*WebsocketClient]bool),
-		topics:                    make(map[string][]*WebsocketClient),
+		topicHandlers:             make(map[string]func() (interface{}, error)),
+		topicListeners:            make(map[string][]*WebsocketClient),
 		topicsMessageForNewClient: make(map[string]handler.ServerMessage),
 		topicHasClient:            make(map[string]bool),
 	}
@@ -46,7 +48,7 @@ func NewWebsocket() *Ws {
 
 func (instance *Ws) SendMessage(topic string, message handler.ServerMessage) {
 
-	for _, v := range instance.topics[topic] {
+	for _, v := range instance.topicListeners[topic] {
 		err := v.SendJson(message)
 		if err != nil {
 			fmt.Println("Can't send data to client ", v.Connect.RemoteAddr())
@@ -95,30 +97,32 @@ func (instance *Ws) Handler() gin.HandlerFunc {
 }
 
 func (instance *Ws) AddClientToTopic(topic string, client *WebsocketClient) bool {
-	for _, v := range instance.topics[topic] {
+	for _, v := range instance.topicListeners[topic] {
 		if v == client {
 			return false
 		}
 	}
 
-	instance.topics[topic] = append(instance.topics[topic], client)
+	instance.topicListeners[topic] = append(instance.topicListeners[topic], client)
 	instance.topicHasClient[topic] = true
+
+	client.SendJson(instance.CallHandler(topic))
 
 	return true
 }
 
 func (instance *Ws) RemoveClientFromAllTopic(client *WebsocketClient) {
-	for i, _ := range instance.topics {
+	for i, _ := range instance.topicListeners {
 		instance.RemoveClientFromTopic(i, client)
 	}
 }
 
 func (instance *Ws) RemoveClientFromTopic(topic string, client *WebsocketClient) bool {
-	for i, clientItem := range instance.topics[topic] {
+	for i, clientItem := range instance.topicListeners[topic] {
 		if clientItem == client {
-			instance.topics[topic] = append(instance.topics[topic][:i], instance.topics[topic][i+1:]...)
+			instance.topicListeners[topic] = append(instance.topicListeners[topic][:i], instance.topicListeners[topic][i+1:]...)
 
-			if len(instance.topics[topic]) <= 0 {
+			if len(instance.topicListeners[topic]) <= 0 {
 				instance.topicHasClient[topic] = false
 			}
 			return true
@@ -131,26 +135,33 @@ func (instance *Ws) HasTopicClients(topic string) bool {
 	return instance.topicHasClient[topic]
 }
 
-func (instance *Ws) CreateTopic(topic string, fn func() (interface{}, error), sleep time.Duration) {
-	_, ok := instance.topics[topic]
+func (instance *Ws) CallHandler(topic string) handler.ServerMessage {
+	handlerMessage, err := instance.topicHandlers[topic]()
+	serverMessage := handler.ServerMessage{Topic: topic, Data: handlerMessage}
 
-	if !ok {
-		instance.topics[topic] = make([]*WebsocketClient, 0)
+	if err != nil {
+		serverMessage.Error = gin.H{"serverMessage": err.Error()}
 	}
 
+	return serverMessage
+}
+
+func (instance *Ws) CreateTopic(topic string, fn func() (interface{}, error), params handler.HandlerParams) {
+	_, ok := instance.topicListeners[topic]
+
+	if !ok {
+		instance.topicListeners[topic] = make([]*WebsocketClient, 0)
+		instance.topicHandlers[topic] = fn
+	}
+
+	if params.SendOnce {
+		return
+	}
 	go func() {
 		for {
-			handlerMessage, err := fn()
-			serverMessage := handler.ServerMessage{Topic: topic, Data: handlerMessage}
+			instance.SendMessage(topic, instance.CallHandler(topic))
 
-			if err != nil {
-				serverMessage.Error = gin.H{"serverMessage": err.Error()}
-			}
-
-			instance.SendMessage(topic, serverMessage)
-			instance.topicsMessageForNewClient[topic] = serverMessage
-
-			time.Sleep(sleep)
+			time.Sleep(params.Sleep)
 		}
 	}()
 }

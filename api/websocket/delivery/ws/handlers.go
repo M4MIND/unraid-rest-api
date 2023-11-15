@@ -11,6 +11,14 @@ type Handler struct {
 	service service.Container
 }
 
+func (h Handler) CpuStats() (interface{}, error) {
+	return h.service.CpuService.GetAvgHistory(), nil
+}
+
+func (h Handler) CpuStatsTick() (interface{}, error) {
+	return h.service.CpuService.GetAvgHistoryLast(), nil
+}
+
 func (h Handler) MemoryInfoTick() (interface{}, error) {
 	return h.service.MemoryService.GetHistoryLast(), nil
 }
